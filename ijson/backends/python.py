@@ -44,7 +44,17 @@ class Lexer(object):
                 else:
                     self.pos += 1
                     return char
-            self.buffer = self.f.read(BUFSIZE).decode('utf-8')
+            data = self.f.read(BUFSIZE)
+            try:
+                self.buffer = data.decode('utf-8')
+            except UnicodeDecodeError:
+                while 42:
+                    try:
+                        data += self.f.read(1)
+                        self.buffer = data.decode('utf-8')
+                        break
+                    except UnicodeDecodeError:
+                        pass
             self.pos = 0
             if not len(self.buffer):
                 raise StopIteration
@@ -85,7 +95,17 @@ class Lexer(object):
                     return result
             except ValueError:
                 old_len = len(self.buffer)
-                self.buffer += self.f.read(BUFSIZE).decode('utf-8')
+                data = self.f.read(BUFSIZE)
+                try:
+                    self.buffer += data.decode('utf-8')
+                except UnicodeDecodeError:
+                    while 42:
+                        try:
+                            data += self.f.read(1)
+                            self.buffer += data.decode('utf-8')
+                            break
+                        except UnicodeDecodeError:
+                            pass
                 if len(self.buffer) == old_len:
                     raise common.IncompleteJSONError()
 
